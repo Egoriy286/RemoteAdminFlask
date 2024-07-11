@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /*height: 100vh;*/
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+        }
+        .container input[type="text"], .container input[type="number"], .container input[type="time"] {
+            width: calc(100% - 10px);
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .container button:disabled {
+            background-color: #ccc;
+        }
+        .container .status-indicator {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .container .status {
+            height: 15px;
+            width: 15px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .status.on {
+            background-color: green;
+        }
+        .status.off {
+            background-color: red;
+        }
+        .container .log {
+            height: 100px;
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 5px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="status-indicator">
+            <div class="status" id="status_indicator"></div>
+            <span id="status_text">off</span>
+        </div>
+        <button onclick="logout()">Logout</button>
+        <button onclick="reload()">перезагрузить</button>
+
+        <a href="{{ link }}" onclick="downloadLogs()">
+            <button >скачать логи</button>
+        </a>
+        <div>
+            <label>максимум токенов</label>
+            <input type="number" id="max_tokens" value="{{ data.max_tokens }}">
+        </div>
+        <div>
+            <label>время запуска</label>
+            <input type="time" id="start_time" value="{{ data.start_time }}">
+        </div>
+        <div>
+            <label>Host</label>
+            <input type="text" id="host" value="{{ data.host }}">
+        </div>
+        <div>
+            <label>Модель</label>
+            <input type="text" id="model" value="{{ data.model }}">
+        </div>
+        <div>
+            <label>Name</label>
+            <input type="text" id="name" value="{{ data.name }}">
+        </div>
+        <div>
+            <label>secretkey-model</label>
+            <input type="text" id="secretkey_model" value="{{ data.secretkey_model }}">
+        </div>
+        <div>
+            <label>Api-token-telegram</label>
+            <input type="text" id="api_token_telegram" value="{{ data.api_token_telegram }}">
+        </div>
+        <label>Консоль</label>
+        <div class="log" id="console_log" style="margin-bottom: 10px;"></div>
+        <button class="clear-button" onclick="clearConsoleLog()">Очистить Console Log</button>
+        <button onclick="send()">Send</button>
+        <div>
+            <label>ip-server-with-port</label>
+            <input type="text" id="ip_host" value="{{ HOST }}">
+        </div>
+        <button onclick="apply()">Apply</button>
+
+    </div>
+
+    <script>
+        function checkStatus() {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    const statusIndicator = document.getElementById('status_indicator');
+                    const statusText = document.getElementById('status_text');
+                    if (data.status) {
+                        statusIndicator.classList.add('on');
+                        statusIndicator.classList.remove('off');
+                        statusText.innerText = 'on';
+                    } else {
+                        statusIndicator.classList.add('off');
+                        statusIndicator.classList.remove('on');
+                        statusText.innerText = 'off';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching status:', error);
+                    const statusIndicator = document.getElementById('status_indicator');
+                    const statusText = document.getElementById('status_text');
+                    statusIndicator.classList.add('off');
+                    statusIndicator.classList.remove('on');
+                    statusText.innerText = 'off';
+                });
+        }
+
+        function reload() {
+            fetch('/reload', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    document.getElementById('console_log').innerText += 'Reloaded\n';
+                });
+        }
+
+        function logout() {
+            fetch('/logout', { method: 'POST' })
+            .then(response => {
+                if (response.ok) {
+                    // Redirect or handle success as needed
+                    console.log('Logged out successfully');
+                } else {
+                    console.error('Logout failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error logging out:', error);
+        });
+        }
+
+        function downloadLogs() {
+            fetch('/download_logs', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    document.getElementById('console_log').innerText += 'Logs downloaded\n';
+                });
+        }
+
+        function clearConsoleLog() {
+            // Находим элемент с id "console_log"
+            var consoleLog = document.getElementById("console_log");
+            // Очищаем его содержимое
+            consoleLog.innerHTML = "";
+        }
+
+        function apply() {
+            const ip_host = document.getElementById('ip_host').value;
+
+            const data_host = {
+                host: ip_host
+            }
+            console.log("Sending data:", data_host); // Debugging output
+
+            fetch('/host', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data_host)
+            })
+            .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    document.getElementById('console_log').innerText += 'host_ip applyed\n';
+                });
+        }
+
+        function send() {
+            const maxTokens = document.getElementById('max_tokens').value;
+            const startTime = document.getElementById('start_time').value;
+            const host = document.getElementById('host').value;
+            const model = document.getElementById('model').value;
+            const name = document.getElementById('name').value;
+            const secretKeyModel = document.getElementById('secretkey_model').value;
+            const apiTokenTelegram = document.getElementById('api_token_telegram').value;
+
+            const data = {
+                max_tokens: maxTokens,
+                start_time: startTime,
+                host: host,
+                model: model,
+                name: name,
+                secretkey_model: secretKeyModel,
+                api_token_telegram: apiTokenTelegram
+            };
+
+            console.log("Sending data:", data); // Debugging output
+
+            fetch('/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data);
+                if (data.status === 'data_sent') {
+                    document.getElementById('console_log').innerText += 'Data sent\n';
+                } else {
+                    document.getElementById('console_log').innerText += 'Failed to send data\n';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('console_log').innerText += 'Failed to send data\n';
+            });
+        }
+
+        // Check status periodically
+        setInterval(checkStatus, 9999); // Check every 10 seconds
+        checkStatus(); // Initial check
+    </script>
+</body>
+</html>
