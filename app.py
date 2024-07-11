@@ -144,7 +144,9 @@ def status():
         return jsonify({"status": False, "error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=False, host="0.0.0.0", port=3000)
+    context = ('fullchain.pem', 'privkey.pem')
+
+    app.run(host='0.0.0.0', port=443, ssl_context=context)
 
 
 
