@@ -12,6 +12,6 @@ RUN pip install -r requirements.txt
 
 # Копируем все файлы из текущей директории в рабочую директорию контейнера
 COPY . .
-EXPOSE 3000
+EXPOSE 5001
 # Указываем команду для запуска Flask-приложения
-CMD ["gunicorn", "-w", "3", "-b", "0.0.0.0:3000", "app:app"]
+CMD ["python", "app.py"]
