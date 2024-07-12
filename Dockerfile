@@ -12,6 +12,6 @@ RUN pip install -r requirements.txt
 
 # Копируем все файлы из текущей директории в рабочую директорию контейнера
 COPY . .
-EXPOSE 443
+EXPOSE 3000
 # Указываем команду для запуска Flask-приложения
 CMD ["python", "app.py"]
