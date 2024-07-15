@@ -68,23 +68,27 @@
 </head>
 <body>
     <div class="container">
+        <button onclick="logout()">Logout</button>
         <div class="status-indicator">
+
             <div class="status" id="status_indicator"></div>
             <span id="status_text">off</span>
-        </div>
-        <button onclick="logout()">Logout</button>
-        <button onclick="reload()">перезагрузить</button>
 
+            <label style="margin-left:10pt">статус бота</label>
+        </div>
+        <div class="status-indicator">
+
+            <div class="status" id="status_indicator_model"></div>
+            <span id="status_text_model">off</span>
+            <label style="margin-left:10pt">статус модели</label>
+        </div>
+        <button onclick="checkStatusModel()">Проверить модель</button>
         <a href="{{ link }}" onclick="downloadLogs()">
             <button >скачать логи</button>
         </a>
         <div>
-            <label>максимум токенов</label>
+            <label>Максимум токенов</label>
             <input type="number" id="max_tokens" value="{{ data.max_tokens }}">
-        </div>
-        <div>
-            <label>время запуска</label>
-            <input type="time" id="start_time" value="{{ data.start_time }}">
         </div>
         <div>
             <label>Host</label>
@@ -110,6 +114,7 @@
         <div class="log" id="console_log" style="margin-bottom: 10px;"></div>
         <button class="clear-button" onclick="clearConsoleLog()">Очистить Console Log</button>
         <button onclick="send()">Send</button>
+        <button onclick="restart()">перезагрузить бота</button>
         <div>
             <label>ip-server-with-port</label>
             <input type="text" id="ip_host" value="{{ HOST }}">
@@ -145,8 +150,34 @@
                 });
         }
 
-        function reload() {
-            fetch('/reload', { method: 'POST' })
+        function checkStatusModel() {
+            fetch('/status_model')
+                .then(response => response.json())
+                .then(data => {
+                    const statusIndicator = document.getElementById('status_indicator_model');
+                    const statusText = document.getElementById('status_text_model');
+                    if (data.status) {
+                        statusIndicator.classList.add('on');
+                        statusIndicator.classList.remove('off');
+                        statusText.innerText = 'on';
+                    } else {
+                        statusIndicator.classList.add('off');
+                        statusIndicator.classList.remove('on');
+                        statusText.innerText = 'off';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching status:', error);
+                    const statusIndicator = document.getElementById('status_indicator_model');
+                    const statusText = document.getElementById('status_text_model');
+                    statusIndicator.classList.add('off');
+                    statusIndicator.classList.remove('on');
+                    statusText.innerText = 'off';
+                });
+        }
+
+        function restart() {
+            fetch('/restart', { method: 'POST' })
                 .then(response => response.json())
                 .then(data => {
                     console.log(data);

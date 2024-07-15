@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import json
 from werkzeug.security import check_password_hash
+import docker
 
 app = Flask(__name__)
 app.secret_key = 'Monasturev08122002'
@@ -98,6 +99,7 @@ def host():
 
 @app.route('/send', methods=['POST'])
 def send():
+    global HOST
     try:
         data = request.json
         if not data:
@@ -123,6 +125,33 @@ def send():
         print(f"An error occurred: {str(e)}")
         return jsonify({"status": "failed", "error": str(e)}), 500
 
+def restart_bot_container(container_name):
+    client = docker.from_env()
+    try:
+        container = client.containers.get(container_name)
+        container.restart()
+        return f"Container {container_name} has been restarted."
+    except docker.errors.NotFound:
+        return f"Container {container_name} not found."
+    except Exception as e:
+        return f"An error occurred: {str(e)}"
+
+@app.route('/restart', methods=['POST'])
+def restart():
+    # Example URL, replace with actual API endpoint
+    external_api_url = f'http://{HOST}/restart'
+    data = "restart"
+
+    try:
+        response = requests.post(external_api_url, json=data)
+        if response.status_code == 200:
+            write_data(data)
+            return jsonify({"status": "data_sent", "data": data})
+        else:
+            return jsonify({"status": "failed", "error": response.text}), response.status_code
+    except requests.RequestException as e:
+        return jsonify({"status": "failed", "error": str(e)}), 500
+
 
 @app.route('/status', methods=['GET'])
 def status():
@@ -135,6 +164,27 @@ def status():
         if response.status_code == 200:
 
             status_data = response.json().get('status', False)
+            # Предполагаем, что булевое значение хранится под ключом 'result'
+            return jsonify({"status": status_data})
+
+        else:
+            return jsonify({"status": False}), response.status_code
+    except requests.RequestException as e:
+        return jsonify({"status": False, "error": str(e)}), 500
+
+
+@app.route('/status_model', methods=['GET'])
+def status_model():
+    try:
+        # Example URL, replace with actual API endpoint
+        external_api_url = f'http://{HOST}/status_model'
+
+        response = requests.get(external_api_url)
+        print(response)
+        if response.status_code == 200:
+
+            status_data = response.json().get('status_model', False)
+            print(status_data)
             # Предполагаем, что булевое значение хранится под ключом 'result'
             return jsonify({"status": status_data})
 

@@ -1,5 +1,5 @@
 {
-    "max_tokens": "10000",
+    "max_tokens": "1500",
     "start_time": "00:00:30",
     "host": "https://api.rus-gpt.com/v1",
     "model": "casperhansen/llama-3-70B-instruct-awq",
