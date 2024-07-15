@@ -13,7 +13,7 @@ logs = []
 
 with open(json_file_path, 'r') as file:
     host_data = json.load(file)
-
+file.close()
 HOST = host_data['host']
 logs_url = f"http://{HOST}/logs"
 
@@ -35,12 +35,14 @@ def load_user(user_id):
 def read_data():
     with open('data.json', 'r') as file:
         data = json.load(file)
+    file.close()
     return data
 
 
 def write_data(data):
     with open('data.json', 'w') as file:
         json.dump(data, file, indent=4)
+    file.close()
 
 
 @app.route('/')
