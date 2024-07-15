@@ -51,4 +51,4 @@ jobs:
             docker pull ${{ steps.meta.outputs.tags }}
             docker stop my-admin-conatiner || true
             docker rm my-admin-conatiner || true
-            docker run -d -p 5001:5001 --name my-admin-conatiner ${{ steps.meta.outputs.tags }}
+            docker run -d -p 5001:5001 --restart=always --name my-admin-conatiner ${{ steps.meta.outputs.tags }}
