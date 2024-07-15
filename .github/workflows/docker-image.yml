@@ -1,13 +1,19 @@
-on: [push]
+name: CI/CD Pipeline v1.0
+
+on:
+  push:
+    branches:
+      - main  # Триггерить пайплайн на пуш в ветку main
+
 jobs:
   build:
-    name: Push Docker image to multiple registries
     runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
+
     steps:
-      - name: Check out the repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Log in to the Container registry
@@ -16,19 +22,32 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels) for Docker
+          
+      - name: Extract metadata (tags, labels) for Docker image
         id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        uses: docker/metadata-action@v4
         with:
-          images: |
-            ghcr.io/${{ github.repository }}
-      
-      - name: Build and push Docker images
-        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+          images: ghcr.io/${{ github.repository }}
+          
+      - name: Build and push Docker image
+        id: docker_build
+        uses: docker/build-push-action@v2
         with:
           context: .
           file: ./Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: SSH Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PASSWORD }}  # или использовать ${{ secrets.SERVER_SSH_PRIVATE_KEY }} в зависимости от настроек сервера
+          port: ${{ secrets.SERVER_SSH_PORT }}
+          script: |
+            docker pull ${{ steps.meta.outputs.tags }}
+            docker stop my-admin-conatiner || true
+            docker rm my-admin-conatiner || true
+            docker run -d -p 5001:5001 --name my-admin-conatiner ${{ steps.meta.outputs.tags }}
