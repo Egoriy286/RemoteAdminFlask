@@ -256,9 +256,9 @@
         }
 
         function apply() {
-            const ipHost = document.getElementById('bot_host').value;
+            const bot_host = document.getElementById('bot_host').value;
             const data_host = {
-                host: ipHost,
+                host: bot_host,
             }
             console.log("Sending data:", data_host); // Debugging output
 
@@ -278,7 +278,6 @@
 
         function send() {
             const maxTokens = document.getElementById('max_tokens').value;
-            const startTime = document.getElementById('start_time').value;
             const host = document.getElementById('host').value;
             const model = document.getElementById('model').value;
             const name = document.getElementById('name').value;
@@ -288,7 +287,6 @@
 
             const data = {
                 max_tokens: maxTokens,
-                start_time: startTime,
                 host: host,
                 model: model,
                 name: name,

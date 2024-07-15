@@ -98,7 +98,7 @@ def host():
     host_data = request.json
     if not host_data:
         return jsonify({"status": "failed", "error": "No data received"}), 400
-
+    print("host saved")
     with open('host.json', 'w') as file:
         json.dump(host_data, file, indent=4)
     HOST = host_data['bot_host']

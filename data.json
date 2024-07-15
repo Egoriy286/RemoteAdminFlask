@@ -1,10 +1,9 @@
 {
     "max_tokens": "1500",
-    "start_time": "00:00:30",
     "host": "https://api.rus-gpt.com/v1",
     "model": "casperhansen/llama-3-70B-instruct-awq",
     "name": "Llama-3-70b",
     "secretkey_model": "sk-fLu0wrjLaSqFNvBsfMxClue8iM5zTzMCEBrgwVjAHNhF9Eum",
     "api_token_telegram": "7338568070:AAGGEX3KVPu02IPd7wGHenRF1q1qXY0RfXQ",
-    "admin_host": "127.0.0.1:5001"
+    "admin_host": "proegdev.site:5001"
 }
