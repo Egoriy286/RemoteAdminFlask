@@ -64,6 +64,15 @@
             border-radius: 5px;
             overflow-y: auto;
         }
+        .log {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+        }
+        .clear-button {
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -82,9 +91,15 @@
             <span id="status_text_model">off</span>
             <label style="margin-left:10pt">статус модели</label>
         </div>
-        <button onclick="checkStatusModel()">Проверить модель</button>
+        <div style="display:flex;">
+            <button style="width:48%" onclick="restart()">перезагрузить бота</button>
+            <div style="width:4%"> </div>
+            <button style="width:48%" onclick="checkStatusModel()">Проверить модель</button>
+
+        </div>
         <a href="{{ link }}" onclick="downloadLogs()">
-            <button >скачать логи</button>
+                <button >скачать логи</button>
+
         </a>
         <div>
             <label>Максимум токенов</label>
@@ -110,19 +125,27 @@
             <label>Api-token-telegram</label>
             <input type="text" id="api_token_telegram" value="{{ data.api_token_telegram }}">
         </div>
-        <label>Консоль</label>
-        <div class="log" id="console_log" style="margin-bottom: 10px;"></div>
-        <button class="clear-button" onclick="clearConsoleLog()">Очистить Console Log</button>
-        <button onclick="send()">Send</button>
-        <button onclick="restart()">перезагрузить бота</button>
+        <label>ip:port, admin panel</label>
+            <div style="display:flex;">
+                <input style="width: 50%; margin-right:5pt;" type="text" id="admin_host" value="{{ data.admin_host }}">
+                <div style="width:50%"><button onclick="send()">Отправить</button></div>
+            </div>
+
         <div>
-            <label>ip-server-with-port</label>
-            <input type="text" id="ip_host" value="{{ HOST }}">
+            <label>ip:port, bot</label>
+            <div style="display:flex;">
+                <input style="width: 50%; margin-right:5pt;" type="text" id="bot_host" value="{{ BOT_HOST }}">
+                <div style="width:50%"><button onclick="apply()">Apply</button></div>
+            </div>
         </div>
-        <button onclick="apply()">Apply</button>
+        <label>Консоль</label>
+        <div class="log" id="console_log" style="margin-bottom: 10px;height:500px">
+
+        </div>
+        <button class="clear-button" onclick="clearConsoleLog()">Очистить Console Log</button>
+
 
     </div>
-
     <script>
         function checkStatus() {
             fetch('/status')
@@ -175,6 +198,22 @@
                     statusText.innerText = 'off';
                 });
         }
+        function fetchLogs() {
+            fetch('/logs')
+                .then(response => response.json())
+                .then(data => {
+                    var consoleLog = document.getElementById('console_log');
+                    consoleLog.innerHTML = ''; // Очищаем содержимое элемента перед добавлением новых логов
+                    data.forEach(log => {
+                        var p = document.createElement('p');
+                        p.textContent = log;
+                        consoleLog.appendChild(p); // Добавляем новый лог в конец списка
+                    });
+                });
+        }
+
+        // Вызываем функцию fetchLogs() каждую секунду для обновления логов
+        setInterval(fetchLogs, 1000);
 
         function restart() {
             fetch('/restart', { method: 'POST' })
@@ -217,10 +256,9 @@
         }
 
         function apply() {
-            const ip_host = document.getElementById('ip_host').value;
-
+            const ipHost = document.getElementById('bot_host').value;
             const data_host = {
-                host: ip_host
+                host: ipHost,
             }
             console.log("Sending data:", data_host); // Debugging output
 
@@ -246,6 +284,7 @@
             const name = document.getElementById('name').value;
             const secretKeyModel = document.getElementById('secretkey_model').value;
             const apiTokenTelegram = document.getElementById('api_token_telegram').value;
+            const hostServer = document.getElementById('admin_host').value;
 
             const data = {
                 max_tokens: maxTokens,
@@ -254,7 +293,8 @@
                 model: model,
                 name: name,
                 secretkey_model: secretKeyModel,
-                api_token_telegram: apiTokenTelegram
+                api_token_telegram: apiTokenTelegram,
+                admin_host : hostServer
             };
 
             console.log("Sending data:", data); // Debugging output
